@@ -7,6 +7,8 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
+using System.IO;
+using System.Collections.Generic;
 
 namespace PoemBot
 {
@@ -23,10 +25,38 @@ namespace PoemBot
             {
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
                 // calculate something for us to return
+
+                string replyStr = String.Empty;
+                if (activity.Text.Contains("/getpoem"))
+                {
+                    var request = WebRequest.Create(new Uri("https://poem.alv.in/api/generate")) as HttpWebRequest;
+                    request.Method = "GET";
+                    request.Accept = "application/json";
+                    WebResponse responseObject = await Task<WebResponse>.Factory.FromAsync(request.BeginGetResponse, request.EndGetResponse, request);
+                    var responseStream = responseObject.GetResponseStream();
+                    var sr = new StreamReader(responseStream);
+                    string received = await sr.ReadToEndAsync();
+
+                    
+                    JsonTextReader jreader = new JsonTextReader(new StringReader(received));
+                    if(jreader!=null)
+                    {
+                        while(jreader.Read())
+                        {
+                            if(jreader.Value!=null)
+                            {
+                                replyStr = string.Concat(replyStr, "\n", jreader.Value as string,"\n");                                
+                            }
+                        }
+                    }
+                }
+
+
                 int length = (activity.Text ?? string.Empty).Length;
 
                 // return our reply to the user
-                Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
+                Activity reply = activity.CreateReply($"{replyStr}");
+                //Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
                 await connector.Conversations.ReplyToActivityAsync(reply);
             }
             else
