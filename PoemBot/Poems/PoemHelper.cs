@@ -213,7 +213,7 @@ namespace PoemBot
                 return resultStr.ToString();
             }
             catch(Exception ex)
-            {
+            {//test
                 Console.Write("{0} {1}", ex.Message, ex.StackTrace);
             }
             return String.Empty;
