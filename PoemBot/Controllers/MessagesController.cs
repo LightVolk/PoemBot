@@ -9,6 +9,8 @@ using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.IO;
 using System.Collections.Generic;
+using PoemBot.Requests;
+using PoemBot.Poems;
 
 namespace PoemBot
 {
@@ -29,17 +31,13 @@ namespace PoemBot
             {
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
                 // calculate something for us to return
-
+                RequestFabric fablic = new RequestFabric();
                 string replyStr = String.Empty;
                 if (activity.Text.Contains("/getpoem"))
                 {
-                    var request = WebRequest.Create(new Uri("https://poem.alv.in/api/generate")) as HttpWebRequest;
-                    request.Method = "GET";
-                    request.Accept = "application/json";
-                    WebResponse responseObject = await Task<WebResponse>.Factory.FromAsync(request.BeginGetResponse, request.EndGetResponse, request);
-                    var responseStream = responseObject.GetResponseStream();
-                    var sr = new StreamReader(responseStream);
-                    string received = await sr.ReadToEndAsync();
+
+                                      
+                    string received = await fablic.GetRandomPoem();
 
                     
                     JsonTextReader jreader = new JsonTextReader(new StringReader(received));
@@ -57,13 +55,43 @@ namespace PoemBot
 
                         PoemHelper pHelper = new PoemHelper();
                         var poem = pHelper.MakePoemReply(linesColl);
-
+                        var poemObj=pHelper.MakePoem(linesColl);
                         
 
                         // return our reply to the user
                         Activity reply = activity.CreateReply($"{poem}");                        
                         await connector.Conversations.ReplyToActivityAsync(reply);
+
+                        var stateClient = activity.GetStateClient();
+                        BotState botState = new BotState(stateClient);
+                        BotData botData = new BotData(eTag: "*");
+                        botData.Data = poemObj;
+                        botData.SetProperty<BotState>("LastPoem", botState);
+                        BotData responseSetData = await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, botData);
+
                     }
+                }
+                else if(activity.Text.Contains("/like"))
+                {
+                    var stateClient = activity.GetStateClient();
+                    BotData userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
+                    var poemData = userData.GetProperty<BotData>("LastPoem").Data as Poem;
+                    if (poemData != null)
+                    {
+                       var responseStr= fablic.LikePoem(poemData.HashId);
+                        int ss = 0;
+                    }
+
+                    
+                    
+                    //ReceiptCard plCard = new ReceiptCard()
+                    //{
+                    //    Title = "Like previous poem?",
+                    //    Buttons = cardButtons,
+                    //    Items = receiptList,
+                    //    Total = "275.25",
+                    //    Tax = "27.52"
+                    //};
                 }
                 else if(activity.Text.Contains("/start"))
                 {

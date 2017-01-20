@@ -134,6 +134,7 @@
     <Compile Include="Poems\Poem.cs" />
     <Compile Include="Poems\PoemHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Requests\RequestFabric.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
