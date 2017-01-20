@@ -65,6 +65,18 @@ namespace PoemBot
                         await connector.Conversations.ReplyToActivityAsync(reply);
                     }
                 }
+                else if(activity.Text.Contains("/start"))
+                {
+                    replyStr = @"Hello! Try to use ""/getpoem"" command! ";
+                    Activity reply = activity.CreateReply($"{replyStr}");
+                    await connector.Conversations.ReplyToActivityAsync(reply);
+                }
+                else if(activity.Text.Contains("/help"))
+                {
+                    replyStr = @"Hello! Try to use ""/getpoem"" command! ";
+                    Activity reply = activity.CreateReply($"{replyStr}");
+                    await connector.Conversations.ReplyToActivityAsync(reply);
+                }
                 else
                 {
                     Activity reply = activity.CreateReply($"Cannot understand command.\nType /getpoem");
