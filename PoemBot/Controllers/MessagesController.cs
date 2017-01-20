@@ -12,6 +12,10 @@ using System.Collections.Generic;
 
 namespace PoemBot
 {
+   
+
+    
+
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -41,23 +45,31 @@ namespace PoemBot
                     JsonTextReader jreader = new JsonTextReader(new StringReader(received));
                     if(jreader!=null)
                     {
+                        List<String> linesColl = new List<string>();
                         while(jreader.Read())
                         {
                             if(jreader.Value!=null)
                             {
-                                replyStr = string.Concat(replyStr, "\n", jreader.Value as string,"\n");                                
+                                linesColl.Add(jreader.Value as String);
+                               // replyStr = string.Concat(replyStr, "\n", jreader.Value as string,"\n");                                
                             }
                         }
+
+                        PoemHelper pHelper = new PoemHelper();
+                        var poem = pHelper.MakePoemReply(linesColl);
+
+                        
+
+                        // return our reply to the user
+                        Activity reply = activity.CreateReply($"{poem}");                        
+                        await connector.Conversations.ReplyToActivityAsync(reply);
                     }
                 }
-
-
-                int length = (activity.Text ?? string.Empty).Length;
-
-                // return our reply to the user
-                Activity reply = activity.CreateReply($"{replyStr}");
-                //Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
-                await connector.Conversations.ReplyToActivityAsync(reply);
+                else
+                {
+                    Activity reply = activity.CreateReply($"Cannot understand command.\nType /getpoem");
+                    await connector.Conversations.ReplyToActivityAsync(reply);
+                }                              
             }
             else
             {
